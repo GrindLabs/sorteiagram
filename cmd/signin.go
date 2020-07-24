@@ -52,8 +52,10 @@ Example: sorteiagram sign-in USERNAME PASSWORD`,
 				log.WithError(err).Panicf("Unable to save the session file in %s", sessionFilePath)
 			}
 
-			log.Debugf("Signed in on Instagram as @%s", instagram.Account.Username)
-			fmt.Println(sessionHash)
+			log.WithFields(log.Fields{
+				"username":    instagram.Account.Username,
+				"sessionHash": sessionHash,
+			}).Infoln("Successfuly sigined in on Instagram")
 		},
 	}
 )
