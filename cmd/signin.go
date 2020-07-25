@@ -3,9 +3,9 @@ package cmd
 import (
 	"crypto/sha1"
 	"fmt"
-	"os"
 
 	"github.com/ahmdrz/goinsta/v2"
+	"github.com/grindlabs/sorteiagram/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -37,7 +37,7 @@ Example: sorteiagram sign-in USERNAME PASSWORD`,
 				log.Debugf("The session hash is %s", sessionHash)
 			}
 
-			instagram, err := LoadSession(sessionHash)
+			instagram, err := utils.LoadSession(sessionHash)
 
 			if err != nil {
 				log.WithError(err).Warning("Unable to find the session file, trying to signing in...")
@@ -55,7 +55,7 @@ Example: sorteiagram sign-in USERNAME PASSWORD`,
 			log.WithFields(log.Fields{
 				"username":    instagram.Account.Username,
 				"sessionHash": sessionHash,
-			}).Infoln("Successfuly sigined in on Instagram")
+			}).Infoln("Successfuly signed in on Instagram")
 		},
 	}
 )
@@ -63,17 +63,4 @@ Example: sorteiagram sign-in USERNAME PASSWORD`,
 func init() {
 	rootCmd.PersistentFlags().StringVar(&sessionHash, "session-hash", "", "Set a session file (without extension)")
 	rootCmd.AddCommand(signInCmd)
-}
-
-// LoadSession - Load a session file and return a Instagram object
-func LoadSession(sessionHash string) (*goinsta.Instagram, error) {
-	path, err := os.Getwd()
-
-	if err != nil {
-		return nil, err
-	}
-
-	sessionFilePath = fmt.Sprintf("%s/sessions/%s.json", path, sessionHash)
-	instagram, err := goinsta.Import(sessionFilePath)
-	return instagram, err
 }

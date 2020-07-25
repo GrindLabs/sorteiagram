@@ -1,14 +1,12 @@
 package cmd
 
 import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"os"
+	"reflect"
 
 	"github.com/ahmdrz/goinsta/v2"
+	"github.com/grindlabs/sorteiagram/actions"
 
-	actions "github.com/grindlabs/sorteiagram/actions"
+	"github.com/grindlabs/sorteiagram/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -24,26 +22,13 @@ Example: sorteiagram run RULES_ID`,
 			log.Panicln("Unable to execute the rules because there is no valid session")
 		}
 
-		instagram, err := LoadSession(sessionHash)
+		instagram, err := utils.LoadSession(sessionHash)
 
 		if err != nil {
 			log.WithError(err).Panicln("Unable to load the Instagram's session")
 		}
 
-		path, err := os.Getwd()
-
-		if err != nil {
-			log.WithError(err).Panic("Unable to retrieve the rules absolute path")
-		}
-
-		file, err := ioutil.ReadFile(fmt.Sprintf("%s/rules/%s.json", path, args[0]))
-		var rules map[string]interface{}
-
-		if err = json.Unmarshal(file, &rules); err != nil {
-			log.WithError(err).Panic("Unable to load the rules")
-		}
-
-		call(rules, instagram)
+		call(utils.LoadRules(args[0]), instagram)
 	},
 }
 
@@ -51,39 +36,19 @@ func init() {
 	rootCmd.AddCommand(runCmd)
 }
 
-// Retrieve a User object by their profile name
-func getUser(profile string, instagram *goinsta.Instagram) *goinsta.User {
-	user, err := instagram.Profiles.ByName(profile)
-
-	if err != nil {
-		log.WithError(err).Panicln("Unable to retrieve the user by their profile name")
-	}
-
-	return user
-}
-
 // Call the respective rules
-func call(rules map[string]interface{}, instagram *goinsta.Instagram) {
-	for k, v := range rules {
-		switch k {
-		case "LikePost":
-			if v.([]interface{})[0].(string) != "" {
-				actions.LikePost(v.([]interface{})[0].(string), v.([]interface{})[1].(string), getUser(v.([]interface{})[1].(string), instagram))
+func call(rules map[string][]interface{}, instagram *goinsta.Instagram) {
+	for action, params := range rules {
+		if _, ok := actions.ActionsMap[action]; ok {
+			fn := reflect.ValueOf(actions.ActionsMap[action])
+			in := make([]reflect.Value, len(params)+1)
+			in[0] = reflect.ValueOf(instagram)
+
+			for k, param := range params {
+				in[k+1] = reflect.ValueOf(param)
 			}
-			break
 
-		case "FollowProfile":
-			if v.(string) != "" {
-				actions.FollowProfile(getUser(v.(string), instagram))
-			}
-			break
-
-		case "FollowAllProfilesFrom":
-			actions.FollowAllProfilesFrom(getUser(v.(string), instagram))
-			break
-
-		case "TagFriends":
-			break
+			fn.Call(in)
 		}
 	}
 }
