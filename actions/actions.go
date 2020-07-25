@@ -112,7 +112,8 @@ func FreeComment(instagram *goinsta.Instagram, params ...interface{}) {
 	log.WithField("post", post.Code).Infoln("Trying to comment...")
 
 	if err = post.Comments.Add(params[2].(string)); err != nil {
-		log.WithError(err).Panicln("Unable to post a comment")
+		log.WithError(err).Warningln("Unable to post a comment")
+		return
 	}
 
 	post.Comments.Sync()
