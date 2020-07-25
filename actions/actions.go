@@ -2,7 +2,6 @@ package actions
 
 import (
 	"errors"
-	"time"
 
 	"github.com/ahmdrz/goinsta/v2"
 
@@ -93,7 +92,7 @@ func FollowAllProfilesFrom(instagram *goinsta.Instagram, params ...interface{}) 
 		for _, user := range following.Users {
 			log.Infof("Following @%s...\n", user.Username)
 			FollowProfile(instagram, user.Username)
-			time.Sleep(10 * time.Second)
+			// time.Sleep(10 * time.Second)
 		}
 	}
 }
