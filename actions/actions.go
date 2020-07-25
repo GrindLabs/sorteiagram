@@ -71,7 +71,8 @@ func FollowProfile(instagram *goinsta.Instagram, params ...interface{}) {
 
 	if !user.Friendship.Following {
 		if err := user.Follow(); err != nil {
-			log.WithError(err).Panicln("Unable to follow the profile")
+			log.WithError(err).Warningln("Unable to follow the profile")
+			return
 		}
 
 		log.WithField("profile", profile).Infoln("Profile followed successfuly")
