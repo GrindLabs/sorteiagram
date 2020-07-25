@@ -48,6 +48,8 @@ Example: sorteiagram sign-in USERNAME PASSWORD`,
 				}
 			}
 
+			sessionFilePath = fmt.Sprintf("%s/sessions/%s.json", utils.GetAbsPath(), sessionHash)
+
 			if err = instagram.Export(sessionFilePath); err != nil {
 				log.WithError(err).Panicf("Unable to save the session file in %s", sessionFilePath)
 			}
