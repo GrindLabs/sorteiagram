@@ -64,11 +64,11 @@ func FollowProfile(instagram *goinsta.Instagram, params ...interface{}) {
 	profile := params[0].(string)
 	user := utils.GetUser(profile, instagram)
 
-	// log.WithField("profile", profile).Infoln("Syncing friendship status...")
+	log.WithField("profile", profile).Infoln("Syncing friendship status...")
 
-	// if err := user.FriendShip(); err != nil {
-	// 	log.WithError(err).Panicln("Unable to sync the friendship status")
-	// }
+	if err := user.FriendShip(); err != nil {
+		log.WithError(err).Warningln("Unable to sync the friendship status")
+	}
 
 	if !user.Friendship.Following {
 		if err := user.Follow(); err != nil {
@@ -111,13 +111,13 @@ func FreeComment(instagram *goinsta.Instagram, params ...interface{}) {
 	}
 
 	log.WithField("post", post.Code).Infoln("Trying to comment...")
+	post.Comments.Sync()
 
 	if err = post.Comments.Add(params[2].(string)); err != nil {
 		log.WithError(err).Warningln("Unable to post a comment")
 		return
 	}
 
-	post.Comments.Sync()
 	log.WithFields(log.Fields{
 		"post":    post.Code,
 		"message": params[2].(string),
