@@ -64,16 +64,15 @@ func FollowProfile(instagram *goinsta.Instagram, params ...interface{}) {
 	profile := params[0].(string)
 	user := utils.GetUser(profile, instagram)
 
-	log.WithField("profile", profile).Infoln("Syncing friendship status...")
+	// log.WithField("profile", profile).Infoln("Syncing friendship status...")
 
-	if err := user.FriendShip(); err != nil {
-		log.WithError(err).Panicln("Unable to sync the friendship status")
-	}
+	// if err := user.FriendShip(); err != nil {
+	// 	log.WithError(err).Panicln("Unable to sync the friendship status")
+	// }
 
 	if !user.Friendship.Following {
 		if err := user.Follow(); err != nil {
-			// log.WithError(err).Warningln("Unable to follow the profile")
-			log.Warningln(err)
+			log.WithError(err).Warningln("Unable to follow the profile")
 			return
 		}
 
