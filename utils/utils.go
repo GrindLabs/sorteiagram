@@ -2,9 +2,11 @@ package utils
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"time"
 
 	"github.com/ahmdrz/goinsta/v2"
 	log "github.com/sirupsen/logrus"
@@ -59,4 +61,48 @@ func GetUser(profile string, instagram *goinsta.Instagram) *goinsta.User {
 	}
 
 	return user
+}
+
+// GetPost - Retrieve a post object
+func GetPost(profile, post string, instagram *goinsta.Instagram) (goinsta.Item, error) {
+	feed := GetUser(profile, instagram).Feed()
+	logger := log.WithFields(log.Fields{
+		"post":    post,
+		"profile": profile,
+	})
+
+	logger.Infoln("Looking for post...")
+	time.Sleep(5 * time.Second)
+
+	for feed.Next(false) {
+		for _, item := range feed.Items {
+			if item.Code == post {
+				logger.Infoln("Post found")
+				return item, nil
+			}
+		}
+
+		time.Sleep(5 * time.Second)
+	}
+
+	return goinsta.Item{}, errors.New("Post not found")
+}
+
+// Retry - Keep trying to call an endpoint
+func Retry(maxAttempts int, sleep time.Duration, function func() error) (err error) {
+	for currentAttempt := 0; currentAttempt < maxAttempts; currentAttempt++ {
+		err = function()
+
+		if err == nil {
+			return
+		}
+
+		for i := 0; i <= currentAttempt; i++ {
+			time.Sleep(sleep)
+		}
+
+		log.Infoln("Retrying after error:", err)
+	}
+
+	return fmt.Errorf("After %d attempts, last error: %s", maxAttempts, err)
 }
