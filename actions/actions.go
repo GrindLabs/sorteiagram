@@ -28,7 +28,7 @@ func LikePost(instagram *goinsta.Instagram, params ...interface{}) {
 	}
 
 	if !post.HasLiked {
-		time.Sleep(5 * time.Second)
+		time.Sleep(2 * time.Second)
 
 		if err = post.Like(); err != nil {
 			logger.WithError(err).Panicln("Unable to like the post")
@@ -48,25 +48,26 @@ func FollowProfile(instagram *goinsta.Instagram, params ...interface{}) {
 	logger := log.WithField("profile", profile)
 
 	logger.Infoln("Syncing friendship status...")
-	time.Sleep(5 * time.Second)
+	time.Sleep(2 * time.Second)
 
 	if err := user.FriendShip(); err != nil {
 		logger.WithError(err).Warningln("Unable to sync the friendship status")
 	}
 
-	if !user.Friendship.Following {
-		time.Sleep(5 * time.Second)
-
-		if err := user.Follow(); err != nil {
-			logger.WithError(err).Warningln("Unable to follow the profile")
-			return
-		}
-
-		logger.Infoln("Profile followed successfuly")
+	if user.Friendship.Following {
+		logger.Infoln("Profile already followed")
 		return
 	}
 
-	logger.Infoln("Profile already followed")
+	time.Sleep(2 * time.Second)
+
+	if err := user.Follow(); err != nil {
+		logger.WithError(err).Warningln("Unable to follow the profile")
+		return
+	}
+
+	logger.Infoln("Profile followed successfuly")
+
 }
 
 // FollowAllProfilesFrom - Follow all profiles that a profile follows
@@ -81,7 +82,7 @@ func FollowAllProfilesFrom(instagram *goinsta.Instagram, params ...interface{}) 
 		for _, user := range following.Users {
 			logger.Infof("Following @%s...\n", user.Username)
 			FollowProfile(instagram, user.Username)
-			time.Sleep(20 * time.Second)
+			time.Sleep(5 * time.Second)
 		}
 	}
 }
@@ -104,7 +105,7 @@ func FreeComment(instagram *goinsta.Instagram, params ...interface{}) {
 
 	logger.Infoln("Trying to comment...")
 	post.Comments.Sync()
-	time.Sleep(5 * time.Second)
+	time.Sleep(2 * time.Second)
 
 	if err = post.Comments.Add(params[2].(string)); err != nil {
 		logger.WithError(err).Warningln("Unable to post a comment")

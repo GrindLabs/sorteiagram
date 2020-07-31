@@ -72,7 +72,7 @@ func GetPost(profile, post string, instagram *goinsta.Instagram) (goinsta.Item, 
 	})
 
 	logger.Infoln("Looking for post...")
-	time.Sleep(5 * time.Second)
+	time.Sleep(2 * time.Second)
 
 	for feed.Next(false) {
 		for _, item := range feed.Items {
@@ -82,7 +82,7 @@ func GetPost(profile, post string, instagram *goinsta.Instagram) (goinsta.Item, 
 			}
 		}
 
-		time.Sleep(5 * time.Second)
+		time.Sleep(2 * time.Second)
 	}
 
 	return goinsta.Item{}, errors.New("Post not found")
