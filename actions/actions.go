@@ -1,8 +1,6 @@
 package actions
 
 import (
-	"time"
-
 	"github.com/ahmdrz/goinsta/v2"
 
 	"github.com/grindlabs/sorteiagram/utils"
@@ -30,7 +28,7 @@ func LikePost(instagram *goinsta.Instagram, params ...interface{}) {
 	}
 
 	if !post.HasLiked {
-		time.Sleep(2 * time.Second)
+		utils.WaitFor(3)
 
 		if err = post.Like(); err != nil {
 			logger.WithError(err).Panicln("Unable to like the post")
@@ -50,7 +48,7 @@ func FollowProfile(instagram *goinsta.Instagram, params ...interface{}) {
 	logger := log.WithField("profile", profile)
 
 	logger.Infoln("Syncing friendship status...")
-	time.Sleep(2 * time.Second)
+	utils.WaitFor(3)
 
 	if err := user.FriendShip(); err != nil {
 		logger.WithError(err).Warningln("Unable to sync the friendship status")
@@ -61,14 +59,14 @@ func FollowProfile(instagram *goinsta.Instagram, params ...interface{}) {
 		return
 	}
 
-	time.Sleep(2 * time.Second)
+	utils.WaitFor(3)
 
 	if err := user.Follow(); err != nil {
 		logger.WithError(err).Warningln("Unable to follow the profile")
 		return
 	}
 
-	time.Sleep(2 * time.Second)
+	utils.WaitFor(3)
 
 	if err := user.Mute(goinsta.MuteAll); err != nil {
 		logger.WithError(err).Warningln("Unable to mute the profile")
@@ -85,6 +83,7 @@ func FollowAllProfilesFrom(instagram *goinsta.Instagram, params ...interface{}) 
 	logger := log.WithField("from", profile)
 
 	logger.Infoln("Following all profiles...")
+	utils.WaitFor(3)
 
 	for following.Next() {
 		for _, user := range following.Users {
@@ -92,7 +91,7 @@ func FollowAllProfilesFrom(instagram *goinsta.Instagram, params ...interface{}) 
 			FollowProfile(instagram, user.Username)
 		}
 
-		time.Sleep(5 * time.Second)
+		utils.WaitFor(3)
 	}
 }
 
@@ -103,7 +102,7 @@ func UnfollowProfile(instagram *goinsta.Instagram, params ...interface{}) {
 	logger := log.WithField("profile", profile)
 
 	logger.Infoln("Syncing friendship status...")
-	time.Sleep(2 * time.Second)
+	utils.WaitFor(3)
 
 	if err := user.FriendShip(); err != nil {
 		logger.WithError(err).Warningln("Unable to sync the friendship status")
@@ -114,7 +113,7 @@ func UnfollowProfile(instagram *goinsta.Instagram, params ...interface{}) {
 		return
 	}
 
-	time.Sleep(2 * time.Second)
+	utils.WaitFor(3)
 
 	if err := user.Unfollow(); err != nil {
 		logger.WithError(err).Warningln("Unable to unfollow the profile")
@@ -131,6 +130,7 @@ func UnfollowAllProfilesFrom(instagram *goinsta.Instagram, params ...interface{}
 	logger := log.WithField("from", profile)
 
 	logger.Infoln("Unfollowing all profiles...")
+	utils.WaitFor(3)
 
 	for following.Next() {
 		for _, user := range following.Users {
@@ -138,7 +138,7 @@ func UnfollowAllProfilesFrom(instagram *goinsta.Instagram, params ...interface{}
 			UnfollowProfile(instagram, user.Username)
 		}
 
-		time.Sleep(5 * time.Second)
+		utils.WaitFor(3)
 	}
 }
 
@@ -159,8 +159,9 @@ func FreeComment(instagram *goinsta.Instagram, params ...interface{}) {
 	}
 
 	logger.Infoln("Trying to comment...")
+	utils.WaitFor(3)
 	post.Comments.Sync()
-	time.Sleep(2 * time.Second)
+	utils.WaitFor(3)
 
 	if err = post.Comments.Add(params[2].(string)); err != nil {
 		logger.WithError(err).Warningln("Unable to post a comment")

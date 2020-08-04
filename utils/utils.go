@@ -72,7 +72,7 @@ func GetPost(profile, post string, instagram *goinsta.Instagram) (goinsta.Item, 
 	})
 
 	logger.Infoln("Looking for post...")
-	time.Sleep(2 * time.Second)
+	WaitFor(3)
 
 	for feed.Next(false) {
 		for _, item := range feed.Items {
@@ -82,27 +82,13 @@ func GetPost(profile, post string, instagram *goinsta.Instagram) (goinsta.Item, 
 			}
 		}
 
-		time.Sleep(2 * time.Second)
+		WaitFor(3)
 	}
 
 	return goinsta.Item{}, errors.New("Post not found")
 }
 
-// Retry - Keep trying to call an endpoint
-func Retry(maxAttempts int, sleep time.Duration, function func() error) (err error) {
-	for currentAttempt := 0; currentAttempt < maxAttempts; currentAttempt++ {
-		err = function()
-
-		if err == nil {
-			return
-		}
-
-		for i := 0; i <= currentAttempt; i++ {
-			time.Sleep(sleep)
-		}
-
-		log.Infoln("Retrying after error:", err)
-	}
-
-	return fmt.Errorf("After %d attempts, last error: %s", maxAttempts, err)
+// WaitFor - Wait for a couple of seconds
+func WaitFor(seconds time.Duration) {
+	time.Sleep(seconds * time.Second)
 }
