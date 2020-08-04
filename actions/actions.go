@@ -11,11 +11,13 @@ import (
 
 // ActionsMap - Mapping all available action functions
 var ActionsMap = map[string]interface{}{
-	"likePost":              LikePost,
-	"followProfile":         FollowProfile,
-	"followAllProfilesFrom": FollowAllProfilesFrom,
-	"tagFriends":            TagFriends,
-	"freeComment":           FreeComment,
+	"likePost":                LikePost,
+	"followProfile":           FollowProfile,
+	"followAllProfilesFrom":   FollowAllProfilesFrom,
+	"tagFriends":              TagFriends,
+	"freeComment":             FreeComment,
+	"unfollowProfile":         UnfollowProfile,
+	"unfollowAllProfilesFrom": UnfollowAllProfilesFrom,
 }
 
 // LikePost - Like a post
@@ -66,7 +68,13 @@ func FollowProfile(instagram *goinsta.Instagram, params ...interface{}) {
 		return
 	}
 
-	logger.Infoln("Profile followed successfuly")
+	time.Sleep(2 * time.Second)
+
+	if err := user.Mute(goinsta.MuteAll); err != nil {
+		logger.WithError(err).Warningln("Unable to mute the profile")
+	}
+
+	logger.Infoln("Profile followed successfully")
 
 }
 
@@ -80,10 +88,57 @@ func FollowAllProfilesFrom(instagram *goinsta.Instagram, params ...interface{}) 
 
 	for following.Next() {
 		for _, user := range following.Users {
-			logger.Infof("Following @%s...\n", user.Username)
+			logger.Infof("Following @%s...", user.Username)
 			FollowProfile(instagram, user.Username)
-			time.Sleep(5 * time.Second)
 		}
+
+		time.Sleep(5 * time.Second)
+	}
+}
+
+// UnfollowProfile - Unfollow a single profile
+func UnfollowProfile(instagram *goinsta.Instagram, params ...interface{}) {
+	profile := params[0].(string)
+	user := utils.GetUser(profile, instagram)
+	logger := log.WithField("profile", profile)
+
+	logger.Infoln("Syncing friendship status...")
+	time.Sleep(2 * time.Second)
+
+	if err := user.FriendShip(); err != nil {
+		logger.WithError(err).Warningln("Unable to sync the friendship status")
+	}
+
+	if !user.Friendship.Following {
+		logger.Infoln("Profile already unfollowed")
+		return
+	}
+
+	time.Sleep(2 * time.Second)
+
+	if err := user.Unfollow(); err != nil {
+		logger.WithError(err).Warningln("Unable to unfollow the profile")
+		return
+	}
+
+	logger.Infoln("Profile unfollowed successfully")
+}
+
+// UnfollowAllProfilesFrom - Unfollow all profiles that a profile follows
+func UnfollowAllProfilesFrom(instagram *goinsta.Instagram, params ...interface{}) {
+	profile := params[0].(string)
+	following := utils.GetUser(profile, instagram).Following()
+	logger := log.WithField("from", profile)
+
+	logger.Infoln("Unfollowing all profiles...")
+
+	for following.Next() {
+		for _, user := range following.Users {
+			logger.Infof("Unfollowing @%s...", user.Username)
+			UnfollowProfile(instagram, user.Username)
+		}
+
+		time.Sleep(5 * time.Second)
 	}
 }
 
